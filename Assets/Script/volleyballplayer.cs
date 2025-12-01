@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Xml.Serialization;
 using UnityEngine;
 
@@ -5,13 +6,18 @@ public class volleyballplayer : MonoBehaviour
 {
     public Transform volleyball;
     public Transform player;
-
+    Rigidbody rigid;
+    public float diveForce;
     public float idealDistance;
     public float setPower;
     public float hitPower;
     public float bumpPower;
     public enemy enemy;
 
+    private void Start()
+    {
+        rigid = GetComponent<Rigidbody>();
+    }
     // Update is called once per frame
     void Update()
     { 
@@ -27,7 +33,11 @@ public class volleyballplayer : MonoBehaviour
         {
             set();
         }
+        
+        
     }
+
+    
     private void TryHitBall()
     {
         float power = GetHitPower();
@@ -52,10 +62,12 @@ public class volleyballplayer : MonoBehaviour
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
             rb.AddForce(Vector3.up * power, ForceMode.Impulse);
 
-            if (enemy != null)
-                enemy.JumpTrigger();
+            
         }
     }
+
+    
+
 
     private void set()
     {

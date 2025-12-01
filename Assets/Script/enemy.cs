@@ -20,6 +20,9 @@ public class enemy : MonoBehaviour
 
     [Header("Target (Ball)")]
     public Transform ball;
+    public Rigidbody vballRb;
+    public float idealDistance;
+    public float maxPower;
     public float followToleranceZ = 0.1f;     // How close before it stops moving
     public float jumpBallMinHeight = 2.5f;    // Ball must be this high to jump
     public float jumpHorizontalRange = 0.8f;  // How close ball must be in Z to jump
@@ -29,6 +32,10 @@ public class enemy : MonoBehaviour
     Rigidbody rb;
     float lockedX;           // fixed X position on the net
 
+    [Header("Area")]
+    public BoxCollider enemyArea;
+
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -36,8 +43,19 @@ public class enemy : MonoBehaviour
 
         readyToJump = true;
 
-        // Lock X position — the blocker must stay on the net
+        // Lock X position â€” the blocker must stay on the net
         lockedX = transform.position.x;
+    }
+    private bool IsBallInArea()
+    {
+        if (ball == null || enemyArea == null) return false;
+        return enemyArea.bounds.Contains(ball.position);
+    }
+    private bool IsBallOnPlayerSide()
+    {
+        if (ball == null) return false;
+
+        return ball.position.x < lockedX;
     }
 
     private void Update()
@@ -46,7 +64,8 @@ public class enemy : MonoBehaviour
 
         AIInput();
         SpeedControl();
-        
+        IsBallOnPlayerSide();
+        IsBallInArea();
         rb.linearDamping = grounded ? groundDrag : 0f;
 
         // Lock X so it cannot move forward/back at all
@@ -68,24 +87,34 @@ public class enemy : MonoBehaviour
             return;
         }
 
-        // Follow ball along Z-axis
-        float dz = ball.position.z - transform.position.z;
+        
+        if (IsBallOnPlayerSide())
+        {
+            float dz = ball.position.z - transform.position.z;
 
-        if (Mathf.Abs(dz) > followToleranceZ)
-            horizontalInputZ = Mathf.Sign(dz);   // move left/right (Z axis)
+            if (Mathf.Abs(dz) > followToleranceZ)
+                horizontalInputZ = Mathf.Sign(dz);   // move along Z (towards ball's Z)
+            else
+                horizontalInputZ = 0f;
+
+            return;
+        }
+
+        
+        if (IsBallInArea())
+        {
+            float dz = ball.position.z - transform.position.z;
+
+            if (Mathf.Abs(dz) > followToleranceZ)
+                horizontalInputZ = Mathf.Sign(dz);
+            else
+                horizontalInputZ = 0f;
+        }
         else
+        {
+            // Ball is on enemy side but outside our zone -> stay put
             horizontalInputZ = 0f;
-
-        //// Jump if ball is high & almost aligned with Z position
-        //bool ballIsHigh = ball.position.y >= jumpBallMinHeight;
-        //bool ballAlignedZ = Mathf.Abs(dz) <= jumpHorizontalRange;
-
-        //if (readyToJump && grounded && ballIsHigh && ballAlignedZ)
-        //{
-        //    readyToJump = false;
-        //    Jump();
-        //    Invoke(nameof(ResetJump), jumpCooldown);
-        //}
+        }
     }
     public void JumpTrigger()
     {
@@ -94,10 +123,11 @@ public class enemy : MonoBehaviour
         // Only jump if grounded + ready
         if (grounded && readyToJump)
         {
-            Debug.Log("this sucks");
+            
             readyToJump = false;
             Jump();
             Invoke(nameof(ResetJump), jumpCooldown);
+            
         }
     }
 
@@ -116,7 +146,7 @@ public class enemy : MonoBehaviour
     {
         Vector3 vel = rb.linearVelocity;
 
-        // Only control Z speed — X stays locked
+        // Only control Z speed â€” X stays locked
         float zSpeed = new Vector3(0f, 0f, vel.z).magnitude;
 
         if (zSpeed > moveSpeed)
@@ -135,4 +165,5 @@ public class enemy : MonoBehaviour
     {
         readyToJump = true;
     }
+    
 }
