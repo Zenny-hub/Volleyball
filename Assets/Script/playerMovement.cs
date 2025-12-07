@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+
 public class playerMovement : MonoBehaviour
 {
 	[Header("Movement")]
@@ -15,7 +16,9 @@ public class playerMovement : MonoBehaviour
 	public float airMultiplier;
 	bool readyToJump;
 
-	
+    [Header("Movement")]
+    private AudioSource audio;
+	public AudioClip jumpSFX;
 
 	[Header("Keybinds")]
 	public KeyCode jumpKey = KeyCode.Space;
@@ -40,7 +43,8 @@ public class playerMovement : MonoBehaviour
 	{
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
-		
+		audio = GetComponent<AudioSource>();
+
 		readyToJump = true;
 	}
 
@@ -78,8 +82,9 @@ public class playerMovement : MonoBehaviour
 			readyToJump = false;
 
 			Jump();
-
+			audio.PlayOneShot(jumpSFX, 10.0f);
 			Invoke(nameof(ResetJump), jumpCooldown);
+			
 		}
 	}
 
