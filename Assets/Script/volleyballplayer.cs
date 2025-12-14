@@ -7,79 +7,92 @@ public class volleyballplayer : MonoBehaviour
     public Transform volleyball;
     public Transform player;
     Rigidbody rigid;
+    
+
     public float diveForce;
     public float idealDistance;
     public float setPower;
     public float hitPower;
     public float bumpPower;
+
+    [Header("Audio")]
+    private AudioSource audio;
+    public AudioClip hitSFX;
+    public float hitSfxLevel;
+
     public enemy enemy;
 
     private void Start()
     {
         rigid = GetComponent<Rigidbody>();
+        audio = GetComponent<AudioSource>();
     }
-    // Update is called once per frame
+
     void Update()
-    { 
+    {
         if (Input.GetMouseButtonDown(0))
         {
             TryHitBall();
         }
-        if (Input.GetKeyDown(KeyCode.F ))
+
+        if (Input.GetKeyDown(KeyCode.F))
         {
             bump();
         }
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             set();
         }
-        
-        
     }
 
-    
     private void TryHitBall()
     {
         float power = GetHitPower();
+
         if (power > 0)
         {
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
+            rb.linearVelocity = Vector3.zero;
             rb.linearVelocity = GetReflected() * -power;
-
-
+            audio.PlayOneShot(hitSFX, hitSfxLevel);
+            
             if (enemy != null)
-                
+            {
                 enemy.JumpTrigger();
+                enemy.resetToBump();
+            }
         }
     }
-
 
     private void bump()
     {
         float power = GetBumpPower();
+
         if (power > 0)
         {
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
+            rb.linearVelocity = Vector3.zero;
             rb.AddForce(Vector3.up * power, ForceMode.Impulse);
-
-            
         }
     }
-
-    
-
 
     private void set()
     {
         float power = GetSetPower();
+
         if (power > 0)
         {
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
+            rb.linearVelocity = Vector3.zero;
             rb.AddForce(Vector3.up * power, ForceMode.Impulse);
-            rb.AddForce(player.forward * power / 5, ForceMode.Impulse);
+            rb.AddForce(player.forward * power/3f , ForceMode.Impulse);
 
             if (enemy != null)
+            {
                 enemy.JumpTrigger();
+                enemy.resetToBump();
+            }
         }
     }
 
@@ -94,41 +107,32 @@ public class volleyballplayer : MonoBehaviour
 
     private float GetHitPower()
     {
-
-
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
-        float y = -Mathf.Abs(x - idealDistance) / 3 + 1;
+        float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
         float power = y * hitPower;
-        power = Mathf.Clamp(power, 0, hitPower);
+        power = Mathf.Clamp(power, 0f, hitPower);
         return power;
-
     }
 
     private float GetBumpPower()
     {
-
-
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
-        float y = -Mathf.Abs(x - idealDistance) / 3 + 1;
+        float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
         float power = y * bumpPower;
-        power = Mathf.Clamp(power, 0, bumpPower);
+        power = Mathf.Clamp(power, 0f, bumpPower);
         return power;
-
     }
 
     private float GetSetPower()
     {
-
-
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
-        float y = -Mathf.Abs(x - idealDistance) / 3 + 1;
+        float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
         float power = y * setPower;
-        power = Mathf.Clamp(power, 0, setPower);
+        power = Mathf.Clamp(power, 0f, setPower);
         return power;
-
     }
 
 }

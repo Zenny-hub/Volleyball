@@ -14,13 +14,15 @@ public class playerMovement : MonoBehaviour
 	public float jumpForce;
 	public float jumpCooldown;
 	public float airMultiplier;
+
 	bool readyToJump;
 
-    [Header("Movement")]
+    [Header("Audio")]
     private AudioSource audio;
 	public AudioClip jumpSFX;
+	public float jumpSfxLevel;
 
-	[Header("Keybinds")]
+    [Header("Keybinds")]
 	public KeyCode jumpKey = KeyCode.Space;
 
 	[Header("Ground Check")]
@@ -82,7 +84,7 @@ public class playerMovement : MonoBehaviour
 			readyToJump = false;
 
 			Jump();
-			audio.PlayOneShot(jumpSFX, 10.0f);
+			audio.PlayOneShot(jumpSFX, jumpSfxLevel);
 			Invoke(nameof(ResetJump), jumpCooldown);
 			
 		}
