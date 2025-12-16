@@ -9,11 +9,12 @@ public class volleyballplayer : MonoBehaviour
     Rigidbody rigid;
     
 
-    public float diveForce;
+
     public float idealDistance;
     public float setPower;
     public float hitPower;
     public float bumpPower;
+    public float servePower;
 
     [Header("Audio")]
     private AudioSource audio;
@@ -21,12 +22,14 @@ public class volleyballplayer : MonoBehaviour
     public float hitSfxLevel;
 
     public enemy enemy;
+    public Volleyball points;
 
     private void Start()
     {
         rigid = GetComponent<Rigidbody>();
         audio = GetComponent<AudioSource>();
     }
+
 
     void Update()
     {
@@ -35,14 +38,19 @@ public class volleyballplayer : MonoBehaviour
             TryHitBall();
         }
 
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             bump();
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.E))
         {
             set();
+        }
+        if (Input.GetKeyDown(KeyCode.F) && points.playerServe)
+        {
+            serve();
+            points.playerServe = false;
         }
     }
 
@@ -56,12 +64,9 @@ public class volleyballplayer : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             rb.linearVelocity = GetReflected() * -power;
             audio.PlayOneShot(hitSFX, hitSfxLevel);
+            points.playerTouch();
             
-            if (enemy != null)
-            {
-                enemy.JumpTrigger();
-                enemy.resetToBump();
-            }
+            
         }
     }
 
@@ -74,6 +79,7 @@ public class volleyballplayer : MonoBehaviour
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
             rb.linearVelocity = Vector3.zero;
             rb.AddForce(Vector3.up * power, ForceMode.Impulse);
+            points.playerTouch();
         }
     }
 
@@ -86,13 +92,23 @@ public class volleyballplayer : MonoBehaviour
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
             rb.linearVelocity = Vector3.zero;
             rb.AddForce(Vector3.up * power, ForceMode.Impulse);
-            rb.AddForce(player.forward * power/3f , ForceMode.Impulse);
+            rb.AddForce(player.forward * power / 3f, ForceMode.Impulse);
+            points.playerTouch();
 
-            if (enemy != null)
-            {
-                enemy.JumpTrigger();
-                enemy.resetToBump();
-            }
+        }
+    }
+        private void serve()
+    {
+        float power = GetServePower();
+
+        if (power > 0)
+        {
+            Rigidbody rb = volleyball.GetComponent<Rigidbody>();
+            rb.linearVelocity = Vector3.zero;
+            rb.AddForce(Vector3.up * power, ForceMode.Impulse);
+            rb.AddForce(player.forward * power / 3f, ForceMode.Impulse);
+            points.playerTouch();
+            
         }
     }
 
@@ -132,6 +148,15 @@ public class volleyballplayer : MonoBehaviour
 
         float power = y * setPower;
         power = Mathf.Clamp(power, 0f, setPower);
+        return power;
+    }
+    private float GetServePower()
+    {
+        float x = Vector3.Distance(volleyball.transform.position, transform.position);
+        float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
+
+        float power = y * servePower;
+        power = Mathf.Clamp(power, 0f, servePower);
         return power;
     }
 

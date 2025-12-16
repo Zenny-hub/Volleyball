@@ -36,27 +36,22 @@ public class enemy : MonoBehaviour
     [Header("Area")]
     public BoxCollider enemyArea;
 
-    [Header("Block Settings")]
-    public float blockRange = 1.5f;
-    public float blockHeightOffset = 2f;
-    public float blockIdealDistance = 1.2f;
-    public float maxBlockPower = 10f;
-
-    public bool isBlockingJump;
-    public bool hasBlockedThisJump;
 
     [Header("Bump Settings")]
-    public float bumpRange = 1.6f;
-    public float bumpHeightOffset = 1.2f;
-    public float bumpPower = 7f;
-    public float bumpCooldown = 0.35f;
+    public float bumpRange;
+    public float bumpHeightOffset;
+    public float bumpPower;
+    public float bumpCooldown;
 
     [Header("Set Settings")]
-    public float setPower = 7f;              // NEW
-    public float setForwardDiv = 3f;         // NEW (matches your player: power/3f)
+    public float setPower;
+    public float servePower;
+    public float setForwardDiv;         
+    private float lastTouchTime = -999f;     
+    private bool hasBumped = false;          
 
-    private float lastTouchTime = -999f;     // renamed from lastBumpTime
-    private bool hasBumped = false;          // NEW (state)
+
+    public Volleyball points;
 
     private void Start()
     {
@@ -75,14 +70,9 @@ public class enemy : MonoBehaviour
             whatIsGround
         );
 
-        if (grounded)
-        {
-            isBlockingJump = false;
-        }
 
         AIInput();
-        TryBlockBall();
-        TryBumpThenSet();   // CHANGED
+        TryBumpThenSet();
         SpeedControl();
 
         rb.linearDamping = grounded ? groundDrag : 0f;
@@ -153,60 +143,22 @@ public class enemy : MonoBehaviour
     {
         hasBumped = false;
     }
-    public void JumpTrigger()
-    {
-        if (!grounded || !readyToJump) return;
 
-        readyToJump = false;
-        isBlockingJump = true;
-        hasBlockedThisJump = false;
-
-        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        Invoke(nameof(ResetJump), jumpCooldown);
-    }
 
     private void ResetJump()
     {
         readyToJump = true;
-        isBlockingJump = false;
-        hasBlockedThisJump = false;
+
     }
 
-    private void TryBlockBall()
-    {
-        if (!isBlockingJump || hasBlockedThisJump || grounded) return;
-        if (ball == null || vballRb == null) return;
-
-        Vector3 blockPoint = transform.position + Vector3.up * blockHeightOffset;
-        float dist = Vector3.Distance(ball.position, blockPoint);
-
-        if (dist > blockRange) return;
-
-        float power = GetBlockPower(dist);
-        if (power <= 0f) return;
-
-        float toPlayerX = Mathf.Sign(ball.position.x - lockedX);
-        if (toPlayerX == 0f) toPlayerX = -1f;
-
-        Vector3 dir = new Vector3(toPlayerX, 0.8f, 0f).normalized;
-        vballRb.linearVelocity = dir * power;
-
-        hasBlockedThisJump = true;
-    }
-
-    private float GetBlockPower(float distance)
-    {
-        float y = -Mathf.Abs(distance - blockIdealDistance) / 3f + 1f;
-        return Mathf.Clamp(y * maxBlockPower, 0f, maxBlockPower);
-    }
-
+  
 
     private void TryBumpThenSet()
     {
         if (ball == null || vballRb == null) return;
         if (!IsBallInArea()) return;
         if (Time.time < lastTouchTime + bumpCooldown) return;
-        if (isBlockingJump && !grounded) return;
+        
 
         Vector3 touchPoint = transform.position + Vector3.up * bumpHeightOffset;
         float dist = Vector3.Distance(ball.position, touchPoint);
@@ -215,7 +167,7 @@ public class enemy : MonoBehaviour
 
         if (!hasBumped)
         {
-            // FIRST TOUCH = BUMP (up only)
+     
             float power = GetBumpPower(dist);
             if (power <= 0f) return;
 
@@ -226,7 +178,7 @@ public class enemy : MonoBehaviour
         }
         else
         {
-            // SECOND TOUCH = SET (up + forward)
+
             float power = GetSetPower(dist);
             if (power <= 0f) return;
 
@@ -249,7 +201,16 @@ public class enemy : MonoBehaviour
     private float GetSetPower(float distance)
     {
         float y = -Mathf.Abs(distance - idealDistance) / 3f + 1f;
-        return Mathf.Clamp(y * setPower, 0f, setPower);
+        if (points.enemyServe)
+        {
+            return Mathf.Clamp(y * servePower, 0f, servePower);
+            points.enemyServe = false;
+        }
+        else
+        {
+            return Mathf.Clamp(y * setPower, 0f, setPower);
+        }
+        
     }
 
     private bool IsBallInArea()
