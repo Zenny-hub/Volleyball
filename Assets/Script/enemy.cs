@@ -63,6 +63,8 @@ public class enemy : MonoBehaviour
 
     private void Update()
     {
+
+        // Check if enemy is grounded using raycast
         grounded = Physics.Raycast(
             transform.position,
             Vector3.down,
@@ -75,8 +77,10 @@ public class enemy : MonoBehaviour
         TryBumpThenSet();
         SpeedControl();
 
+        // Apply drag when grounded
         rb.linearDamping = grounded ? groundDrag : 0f;
 
+        // Prevent crossing into player’s court
         if (!IsBallInArea())
         {
             Vector3 pos = transform.position;
@@ -101,6 +105,7 @@ public class enemy : MonoBehaviour
 
         if (IsBallInArea())
         {
+            // Follow ball in both axes
             float dz = ball.position.z - transform.position.z;
             float dx = ball.position.x - transform.position.x;
 
@@ -109,6 +114,7 @@ public class enemy : MonoBehaviour
         }
         else
         {
+            // Only move left/right when ball is outside area
             horizontalInputX = 0f;
 
             float dz = ball.position.z - transform.position.z;
@@ -129,6 +135,7 @@ public class enemy : MonoBehaviour
 
     private void SpeedControl()
     {
+        // Limit horizontal movement speed
         Vector3 vel = rb.linearVelocity;
         Vector3 horizontalVel = new Vector3(vel.x, 0f, vel.z);
 
@@ -145,11 +152,6 @@ public class enemy : MonoBehaviour
     }
 
 
-    private void ResetJump()
-    {
-        readyToJump = true;
-
-    }
 
   
 
@@ -158,8 +160,8 @@ public class enemy : MonoBehaviour
         if (ball == null || vballRb == null) return;
         if (!IsBallInArea()) return;
         if (Time.time < lastTouchTime + bumpCooldown) return;
-        
 
+        // Calculate contact point
         Vector3 touchPoint = transform.position + Vector3.up * bumpHeightOffset;
         float dist = Vector3.Distance(ball.position, touchPoint);
 
@@ -167,25 +169,25 @@ public class enemy : MonoBehaviour
 
         if (!hasBumped)
         {
-     
+            // First touch: bump
             float power = GetBumpPower(dist);
             if (power <= 0f) return;
 
             vballRb.linearVelocity = Vector3.zero;
             vballRb.AddForce(Vector3.up * power, ForceMode.Impulse);
-
-            hasBumped = true;
+            points.enemyTouch();
+            hasBumped = true; 
         }
         else
         {
-
+            // Second touch: set
             float power = GetSetPower(dist);
             if (power <= 0f) return;
 
             vballRb.linearVelocity = Vector3.zero;
             vballRb.AddForce(Vector3.up * power, ForceMode.Impulse);
             vballRb.AddForce(transform.forward * (power / setForwardDiv), ForceMode.Impulse);
-
+            points.enemyTouch();
             hasBumped = false;
         }
 
@@ -215,6 +217,7 @@ public class enemy : MonoBehaviour
 
     private bool IsBallInArea()
     {
+        // Check if ball entered the area
         if (ball == null || enemyArea == null) return false;
         return enemyArea.bounds.Contains(ball.position);
     }

@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class volleyballplayer : MonoBehaviour
 {
+    [Header("Refrences")]
     public Transform volleyball;
     public Transform player;
-    Rigidbody rigid;
-    
+    public enemy enemy;
+    public Volleyball points;
 
-
+    [Header("Power")]
     public float idealDistance;
     public float setPower;
     public float hitPower;
@@ -21,8 +22,7 @@ public class volleyballplayer : MonoBehaviour
     public AudioClip hitSFX;
     public float hitSfxLevel;
 
-    public enemy enemy;
-    public Volleyball points;
+    Rigidbody rigid;
 
     private void Start()
     {
@@ -32,6 +32,11 @@ public class volleyballplayer : MonoBehaviour
 
 
     void Update()
+    {
+        buttonInputs();
+    }
+
+    private void buttonInputs()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -53,11 +58,12 @@ public class volleyballplayer : MonoBehaviour
             points.playerServe = false;
         }
     }
-
     private void TryHitBall()
     {
+        // Gets hit power
         float power = GetHitPower();
 
+        // Only hits if ball is in tange
         if (power > 0)
         {
             Rigidbody rb = volleyball.GetComponent<Rigidbody>();
@@ -114,18 +120,27 @@ public class volleyballplayer : MonoBehaviour
 
     private Vector3 GetReflected()
     {
+        // distance of player relative to object
         Vector3 volleyballVector = transform.position - volleyball.transform.position;
+        // first cross product
         Vector3 planeTangent = Vector3.Cross(volleyballVector, player.transform.forward);
+        // second cross product
         Vector3 planeNormal = Vector3.Cross(planeTangent, volleyballVector);
+        
         Vector3 reflected = Vector3.Reflect(player.transform.forward, planeNormal);
         return reflected.normalized;
     }
 
+    
+
+    
     private float GetHitPower()
     {
+        //distance from ball
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
         float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
+        //calculating power
         float power = y * hitPower;
         power = Mathf.Clamp(power, 0f, hitPower);
         return power;
@@ -133,9 +148,11 @@ public class volleyballplayer : MonoBehaviour
 
     private float GetBumpPower()
     {
+        //distance from ball
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
         float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
+        //calculating power
         float power = y * bumpPower;
         power = Mathf.Clamp(power, 0f, bumpPower);
         return power;
@@ -143,18 +160,22 @@ public class volleyballplayer : MonoBehaviour
 
     private float GetSetPower()
     {
+        //distance from ball
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
         float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
+        //calculating power
         float power = y * setPower;
         power = Mathf.Clamp(power, 0f, setPower);
         return power;
     }
     private float GetServePower()
     {
+        //distance from ball
         float x = Vector3.Distance(volleyball.transform.position, transform.position);
         float y = -Mathf.Abs(x - idealDistance) / 3f + 1f;
 
+        //calculating power
         float power = y * servePower;
         power = Mathf.Clamp(power, 0f, servePower);
         return power;

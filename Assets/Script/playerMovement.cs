@@ -8,14 +8,12 @@ public class playerMovement : MonoBehaviour
 {
 	[Header("Movement")]
 	public float moveSpeed;
-
 	public float groundDrag;
-
 	public float jumpForce;
 	public float jumpCooldown;
 	public float airMultiplier;
-
 	bool readyToJump;
+    public Transform orientation;
 
     [Header("Audio")]
     private AudioSource audio;
@@ -30,13 +28,9 @@ public class playerMovement : MonoBehaviour
 	public LayerMask whatIsGround;
 	public bool grounded;
 
-	public Transform orientation;
-
 	float horizontalInput;
 	float verticalInput;
-
 	Vector3 moveDirection;
-
 	Rigidbody rb;
 
 	
@@ -46,7 +40,6 @@ public class playerMovement : MonoBehaviour
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
 		audio = GetComponent<AudioSource>();
-
 		readyToJump = true;
 	}
 
@@ -69,9 +62,11 @@ public class playerMovement : MonoBehaviour
 	{
 		MovePlayer();
 	}
-
+	
+	// user inputs
 	private void MyInput()
 	{
+		// wasd
 		horizontalInput = Input.GetAxisRaw("Horizontal");
 		verticalInput = Input.GetAxisRaw("Vertical");
 
@@ -129,7 +124,7 @@ public class playerMovement : MonoBehaviour
 	private void Jump()
 	{
 
-
+		
 		rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
 	}
 	private void ResetJump()
